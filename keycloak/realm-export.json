@@ -1,0 +1,52 @@
+{
+  "id": "atlas-lens",
+  "realm": "atlas-lens",
+  "displayName": "Atlas Lens Realm",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administrator role with full access"
+      },
+      {
+        "name": "operator",
+        "description": "Operator role for executing repairs and mutations"
+      },
+      {
+        "name": "viewer",
+        "description": "Viewer role for inspecting DAGs and evaluation results"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "atlas-lens-client",
+      "name": "Atlas Lens Client",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://127.0.0.1:3000/*",
+        "http://127.0.0.1:8000/*"
+      ],
+      "webOrigins": [
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://127.0.0.1:3000/*"
+      }
+    }
+  ]
+}

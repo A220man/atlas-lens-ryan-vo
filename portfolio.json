@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "atlas-lens-ryan-vo",
+  "owner": "A220man",
+  "email": "ryandtvo@gmail.com",
+  "domain": "AI/ML developer tools",
+  "summary": "Work in progress: atlas-lens-ryan-vo",
+  "workflows": [
+    "Chat DAG import, integrity repair, and conversation tree visualization",
+    "Reasoning reinjection prevention and prompt history sanitation benchmark",
+    "Per-user MCP server header routing and model provider gateway with deterministic offline core"
+  ],
+  "auth": "oidc-keycloak-saml-broker",
+  "llm_providers": [
+    "openai-compatible",
+    "anthropic",
+    "gemini",
+    "ollama"
+  ],
+  "status": "work-in-progress"
+}
