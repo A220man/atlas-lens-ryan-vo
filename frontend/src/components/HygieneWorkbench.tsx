@@ -27,6 +27,7 @@ export const HygieneWorkbench: React.FC = () => {
   const [messages] = useState<PromptMessageItem[]>(INITIAL_PROMPTS);
   const [reinjectReasoning, setReinjectReasoning] = useState<boolean>(false);
   const [modelId, setModelId] = useState<string>('deepseek-r1-qwen-7b');
+  const [filterTags, setFilterTags] = useState<string>('think,thought');
   const [analysis, setAnalysis] = useState<PromptHygieneResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +36,11 @@ export const HygieneWorkbench: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await api.inspectHygiene(messages, toggleVal, modelId);
+      const parsedTags = filterTags
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+      const res = await api.inspectHygiene(messages, toggleVal, modelId, parsedTags);
       setAnalysis(res);
     } catch (err: any) {
       setError(err.message || 'Inspection failed');
@@ -46,7 +51,7 @@ export const HygieneWorkbench: React.FC = () => {
 
   useEffect(() => {
     runAnalysis(reinjectReasoning);
-  }, [reinjectReasoning]);
+  }, [reinjectReasoning, filterTags]);
 
   const handleToggle = (checked: boolean) => {
     setReinjectReasoning(checked);
@@ -81,6 +86,18 @@ export const HygieneWorkbench: React.FC = () => {
             value={modelId}
             onChange={(e) => setModelId(e.target.value)}
           />
+        </div>
+        <div className="control-group">
+          <label htmlFor="filter-tags-input">Custom Filter Tags:</label>
+          <input
+            id="filter-tags-input"
+            type="text"
+            className="input-field"
+            value={filterTags}
+            onChange={(e) => setFilterTags(e.target.value)}
+            placeholder="e.g. think, thought, scratchpad"
+          />
+          <span className="subtext">Comma-separated tag names to extract and strip from assistant outputs.</span>
         </div>
 
         <div className="control-group toggle-group">

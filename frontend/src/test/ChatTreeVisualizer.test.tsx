@@ -72,15 +72,21 @@ describe('ChatTreeVisualizer Component', () => {
     }));
   });
 
-  it('renders section title and action buttons', () => {
+  it('renders section title and action buttons', async () => {
     render(<ChatTreeVisualizer />);
-    expect(screen.getByText(/Conversational Tree & DAG Integrity Inspector/i)).toBeInTheDocument();
+    // Wait for initial fetch to settle to avoid act() warnings
+    await waitFor(() => {
+      expect(screen.getByText(/Conversational Tree & DAG Integrity Inspector/i)).toBeInTheDocument();
+    });
     expect(screen.getByRole('button', { name: /Load Malformed Sample/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Import Chat JSON/i })).toBeInTheDocument();
   });
 
-  it('opens import modal when clicking Import Chat JSON', () => {
+  it('opens import modal when clicking Import Chat JSON', async () => {
     render(<ChatTreeVisualizer />);
+    await waitFor(() => {
+      expect(screen.getByText(/Conversational Tree & DAG Integrity Inspector/i)).toBeInTheDocument();
+    });
     const importBtn = screen.getByRole('button', { name: /Import Chat JSON/i });
     fireEvent.click(importBtn);
     expect(screen.getByText('Import Conversational JSON')).toBeInTheDocument();
@@ -89,10 +95,13 @@ describe('ChatTreeVisualizer Component', () => {
 
   it('triggers sample import and displays status message', async () => {
     render(<ChatTreeVisualizer />);
+    await waitFor(() => {
+      expect(screen.getByText(/Conversational Tree & DAG Integrity Inspector/i)).toBeInTheDocument();
+    });
     const loadSampleBtn = screen.getByRole('button', { name: /Load Malformed Sample/i });
     fireEvent.click(loadSampleBtn);
     await waitFor(() => {
-      expect(screen.getByText(/Imported and healed chat/i)).toBeInTheDocument();
+      expect(screen.getByText(/Imported and healed chat:/i)).toBeInTheDocument();
     });
   });
 });

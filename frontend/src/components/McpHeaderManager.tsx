@@ -126,10 +126,13 @@ export const McpHeaderManager: React.FC = () => {
             <select
               id="server-select"
               className="input-field"
-              value={selectedServerId}
+              value={selectedServerId || ''}
               onChange={(e) => setSelectedServerId(e.target.value)}
             >
-              {servers.map((s) => (
+              {servers.filter((s) => s?.id).length === 0 && (
+                <option value="" disabled>No servers configured</option>
+              )}
+              {servers.filter((s) => s?.id).map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.url})
                 </option>

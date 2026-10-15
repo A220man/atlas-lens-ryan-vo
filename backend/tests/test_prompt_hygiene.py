@@ -77,3 +77,118 @@ def test_imitation_risk_score():
     ]
     risk_tainted = PromptHygieneEngine.evaluate_imitation_risk(tainted_messages)
     assert risk_tainted >= 0.45
+def test_closed_tag_not_double_counted_as_unclosed():
+    """Ensure a properly closed think tag is not also counted as unclosed.
+
+    Regression: UNCLOSED_THINK_REGEX matched the opening side of any closed
+    tag, inflating imitation risk to 0.80 for one closed tag instead of 0.65.
+    """
+    # Build tags with chr() to survive source inspection / tag stripping
+    to = chr(60) + "think" + chr(62)       # 
+    tc = chr(60) + "/think" + chr(62)      # 
+
+    # Single closed tag: 0.45 + 0.2*1 + 0.15*0 = 0.65
+    msgs = [
+        PromptMessage(role="user", content="Q"),
+        PromptMessage(role="assistant", content=to + "Trace." + tc + " Answer"),
+    ]
+    risk = PromptHygieneEngine.evaluate_imitation_risk(msgs)
+    assert risk == 0.65
+
+    # Two closed tags: 0.45 + 0.2*2 + 0.15*0 = 0.85
+    two_closed = to + "First." + tc + to + "Second." + tc + " Final."
+    msgs2 = [
+        PromptMessage(role="user", content="Q"),
+        PromptMessage(role="assistant", content=two_closed),
+    ]
+    risk2 = PromptHygieneEngine.evaluate_imitation_risk(msgs2)
+    assert risk2 == 0.85
+
+    # One closed + one genuinely unclosed: 0.45 + 0.2*1 + 0.15*1 = 0.80
+    mixed = to + "Closed thought." + tc + to + "Unclosed thought"
+    msgs3 = [
+        PromptMessage(role="user", content="Q"),
+        PromptMessage(role="assistant", content=mixed),
+    ]
+    risk3 = PromptHygieneEngine.evaluate_imitation_risk(msgs3)
+    assert risk3 == 0.80
+
+def test_extract_reasoning_with_custom_filter_tags():
+    """Verify custom filter_tags restrict which tags are extracted.
+
+    Only tags listed in filter_tags should be stripped; other tags pass through.
+    """
+    raw = chr(60) + "think" + chr(62) + "Hidden trace" + chr(60) + "/think" + chr(62) + "Visible output"
+    # When only "thought" is in filter_tags,  tags should remain untouched
+    clean, thoughts, has_tags = PromptHygieneEngine.extract_reasoning_blocks(raw, filter_tags=["thought"])
+    assert has_tags is False
+    assert thoughts is None
+    assert clean == raw
+
+    # When "think" is in filter_tags,  tags should be stripped
+    clean2, thoughts2, has_tags2 = PromptHygieneEngine.extract_reasoning_blocks(raw, filter_tags=["think"])
+    assert has_tags2 is True
+    assert thoughts2 == "Hidden trace"
+    assert clean2 == "Visible output"
+
+
+def test_extract_reasoning_with_extended_filter_tags():
+    """Verify a user-configured additional tag name is also handled."""
+    raw = chr(60) + "scratchpad" + chr(62) + "Scratch reasoning" + chr(60) + "/scratchpad" + chr(62) + "Final answer"
+    clean, thoughts, has_tags = PromptHygieneEngine.extract_reasoning_blocks(
+        raw, filter_tags=["think", "thought", "scratchpad"]
+    )
+    assert has_tags is True
+    assert thoughts == "Scratch reasoning"
+    assert clean == "Final answer"
+
+
+def test_extract_reasoning_with_empty_filter_tags():
+    """Verify empty filter_tags is a no-op: no extraction, original content returned."""
+    raw = chr(60) + "think" + chr(62) + "Trace" + chr(60) + "/think" + chr(62) + "Output"
+    clean, thoughts, has_tags = PromptHygieneEngine.extract_reasoning_blocks(raw, filter_tags=[])
+    assert has_tags is False
+    assert thoughts is None
+    assert clean == raw
+
+
+def test_process_request_with_custom_filter_tags_strips_only_listed():
+    """Verify process_request honors filter_tags for both sanitization and risk scoring."""
+    raw_with_both = (
+        chr(60) + "think" + chr(62) + "Think trace" + chr(60) + "/think" + chr(62) +
+        chr(60) + "thought" + chr(62) + "Thought trace" + chr(60) + "/thought" + chr(62) +
+        "Answer text"
+    )
+    req = PromptHygieneRequest(
+        model_id="custom-tags",
+        reinject_reasoning=False,
+        messages=[
+            PromptMessage(role="user", content="Question"),
+            PromptMessage(role="assistant", content=raw_with_both),
+        ],
+        filter_tags=["think"],
+    )
+    res = PromptHygieneEngine.process_request(req)
+    assert res.contains_think_tags is True
+    # Only  tags stripped; <thought> block should remain in content
+    stripped_content = res.sanitized_messages[1].content
+    assert chr(60) + "think" not in stripped_content
+    assert chr(60) + "thought" + chr(62) in stripped_content
+
+
+def test_imitation_risk_respects_custom_filter_tags():
+    """Verify imitation risk only counts tags within filter_tags."""
+    content_with_unlisted = (
+        chr(60) + "thought" + chr(62) + "Some trace" + chr(60) + "/thought" + chr(62) + "Answer"
+    )
+    msgs = [
+        PromptMessage(role="user", content="Q"),
+        PromptMessage(role="assistant", content=content_with_unlisted),
+    ]
+    # With default tags, should detect the tag
+    risk_default = PromptHygieneEngine.evaluate_imitation_risk(msgs)
+    assert risk_default >= 0.45
+
+    # With only "think" in filter_tags, <thought> tags should not be counted
+    risk_custom = PromptHygieneEngine.evaluate_imitation_risk(msgs, filter_tags=["think"])
+    assert risk_custom == 0.0

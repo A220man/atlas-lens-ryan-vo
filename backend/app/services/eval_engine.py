@@ -79,6 +79,28 @@ BENCHMARK_CORRUPT_DAGS = [
     }
 ]
 
+def _build_observations(
+    sample_count: int,
+    mean_token_savings: float,
+    imitation_suppression_pct: float,
+    healing_pct: float,
+    mean_latency_ms: float,
+) -> List[str]:
+    """Assemble evaluation observations exclusively from measured metrics.
+
+    Each line embeds a value that was actually computed for the run and never an
+    assumed constant, so the report cannot assert a benchmark number that was
+    not observed. For example, the DAG healing observation reports the real
+    healing_pct rather than a hardcoded 100%.
+    """
+    return [
+        f"Evaluated {sample_count} conversation sequences across reasoning tag benchmark.",
+        f"Reasoning reinjection suppression achieved {mean_token_savings}% average token reduction.",
+        f"Imitation tag elimination achieved {imitation_suppression_pct}% suppression rate.",
+        f"DAG structural healing resolved {healing_pct}% of orphan linkages and circular dependencies.",
+        f"Deterministic offline validation latency averaged {mean_latency_ms} ms per graph."
+    ]
+
 
 class EvaluationEngine:
     """Executes deterministic evaluation suite on reasoning and DAG integrity."""
@@ -132,13 +154,13 @@ class EvaluationEngine:
         healing_pct = round((healed_count / len(BENCHMARK_CORRUPT_DAGS)) * 100.0, 2)
         mean_latency_ms = round(((time.perf_counter() - dag_start) / len(BENCHMARK_CORRUPT_DAGS)) * 1000, 3)
 
-        observations = [
-            f"Evaluated {sample_count} conversation sequences across reasoning tag benchmark.",
-            f"Reasoning reinjection suppression achieved {mean_token_savings}% average token reduction.",
-            f"Imitation tag elimination achieved {imitation_suppression_pct}% suppression rate.",
-            f"DAG structural healing resolved 100% of orphan linkages and circular dependencies.",
-            f"Deterministic offline validation latency averaged {mean_latency_ms} ms per graph."
-        ]
+        observations = _build_observations(
+            sample_count=sample_count,
+            mean_token_savings=mean_token_savings,
+            imitation_suppression_pct=imitation_suppression_pct,
+            healing_pct=healing_pct,
+            mean_latency_ms=mean_latency_ms,
+        )
 
         summary = EvaluationMetricSummary(
             run_id=run_id,

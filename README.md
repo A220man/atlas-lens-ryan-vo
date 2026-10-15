@@ -58,7 +58,7 @@ The benchmark executed against the standard test suite yields the following veri
 
 | Metric | Measured Baseline | Description |
 | :--- | :--- | :--- |
-| **Context Token Savings** | **42.5% – 50.0%** | Average prompt token reduction achieved by suppressing reasoning reinjection in history turns |
+| **Context Token Savings** | **35.38%** | Deterministic average prompt token reduction on the bundled `AtlasLens-PromptReasoning-DAG-v1` dataset (20 sequences, `reinject_reasoning=False`), reproducible via the command above |
 | **Tag Contamination Rate** | **0.0% (100% Suppressed)** | Leakage rate of `<think>` and `<thought>` blocks into next-turn prompt messages |
 | **Imitation Risk Score** | **0.00 (Clean) vs 0.85 (Tainted)** | Probability score measuring autoregressive model hallucination of thinking tags |
 | **DAG Healing Success** | **100.0%** | Resolution rate of cyclic dependencies and orphan linkages across corrupted test fixtures |

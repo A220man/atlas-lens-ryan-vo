@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-chat-dag-integrity
+eval-metric-honesty
 
 ## Roadmap
 
@@ -41,7 +41,7 @@ Tests: `backend/tests/test_chat_dag.py`
 Status: done
 
 Acceptance:
-- Parses <think> and <thought> reasoning blocks from assistant outputs
+- Parses think and thought reasoning blocks from assistant outputs
 - Provides model-level toggle to suppress reasoning reinjection in history
 - Calculates token overhead savings and evaluates imitation risk score
 - Provides deterministic sanitization without needing external LLM credentials
@@ -92,4 +92,33 @@ Acceptance:
 Implementation: `frontend/src/App.tsx`, `frontend/src/api.ts`, `frontend/src/types.ts`, `frontend/src/context/AuthContext.tsx`, `frontend/src/components/ChatTreeVisualizer.tsx`, `frontend/src/components/HygieneWorkbench.tsx`, `frontend/src/components/McpHeaderManager.tsx`, `frontend/src/components/EvaluationDashboard.tsx`, `frontend/src/components/AuditLogView.tsx`, `frontend/src/components/Navbar.tsx`
 
 Tests: `frontend/src/test/App.test.tsx`, `frontend/src/test/HygieneWorkbench.test.tsx`, `frontend/src/test/ChatTreeVisualizer.test.tsx`
+
+### custom-filter-tags — Configurable Filter Tags for Prompt Hygiene Engine
+
+Status: done
+
+Acceptance:
+- PromptHygieneRequest.filter_tags is honored by the engine, not ignored
+- Engine builds regex patterns dynamically from the tag list and caches them per tag set
+- Users can specify custom tag names (e.g. scratchpad) in addition to think/thought
+- Empty filter_tags results in no extraction (no-op passthrough)
+- Frontend HygieneWorkbench exposes a comma-separated input for operator-defined tags
+- Risk scoring only counts tags within the configured filter set
+
+Implementation: `backend/app/services/prompt_hygiene.py`, `backend/app/api/hygiene.py`, `frontend/src/components/HygieneWorkbench.tsx`, `frontend/src/api.ts`
+
+Tests: `backend/tests/test_prompt_hygiene.py`
+
+### eval-metric-honesty — Data-driven Empirical Evaluation Observations and Benchmark Accuracy
+
+Status: done
+
+Acceptance:
+- Evaluation observations embed measured metrics rather than hardcoded constants
+- DAG healing observation report reflects the computed healing_pct instead of an assumed 100%
+- README benchmark table reports only values reproduced by the suite
+
+Implementation: `backend/app/services/eval_engine.py`, `README.md`
+
+Tests: `backend/tests/test_eval_engine.py`
 
