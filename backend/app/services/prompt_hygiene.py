@@ -19,8 +19,31 @@ from app.models.schemas import (
 )
 
 
-THINK_REGEX = re.compile(r"<(think|thought)>(.*?)</\1>", re.DOTALL | re.IGNORECASE)
-UNCLOSED_THINK_REGEX = re.compile(r"<(think|thought)>(.*)", re.DOTALL | re.IGNORECASE)
+DEFAULT_FILTER_TAGS = ["think", "thought"]
+
+# Cache of compiled regex patterns keyed by sorted, lowercased tag tuple.
+# Backreference ensures closing tags match opening tag names (e.g. <think>...</think>).
+_PATTERN_CACHE: Dict[tuple, Tuple[re.Pattern, re.Pattern]] = {}
+
+
+def _build_patterns(filter_tags: List[str]) -> Tuple[re.Pattern, re.Pattern]:
+    """Build and cache regex patterns for the given set of tag names.
+
+    The closed-block pattern uses a backreference so that an opening tag and
+    its closing counterpart must share the same name (e.g. <think>...</think>
+    but not <think>...</thought>). Patterns are cached to avoid recompilation
+    on repeated requests with the same tag set.
+    """
+    key = tuple(sorted(t.lower() for t in filter_tags))
+    if key in _PATTERN_CACHE:
+        return _PATTERN_CACHE[key]
+
+    tag_group = "|".join(re.escape(tag) for tag in key)
+    closed = re.compile(rf"<({tag_group})>(.*?)</\1>", re.DOTALL | re.IGNORECASE)
+    unclosed = re.compile(rf"<({tag_group})>(.*)", re.DOTALL | re.IGNORECASE)
+
+    _PATTERN_CACHE[key] = (closed, unclosed)
+    return closed, unclosed
 
 
 class PromptHygieneEngine:
@@ -39,8 +62,21 @@ class PromptHygieneEngine:
         return max(1, estimated)
 
     @classmethod
-    def extract_reasoning_blocks(cls, content: str) -> Tuple[str, Optional[str], bool]:
-        """Extract reasoning traces and return clean content, isolated thoughts, and presence flag."""
+    def extract_reasoning_blocks(
+        cls, content: str, filter_tags: Optional[List[str]] = None
+    ) -> Tuple[str, Optional[str], bool]:
+        """Extract reasoning traces and return clean content, isolated thoughts, and presence flag.
+
+        Uses filter_tags to determine which tag names to search for. When None,
+        defaults to DEFAULT_FILTER_TAGS. When empty, no tags are extracted.
+        """
+        if filter_tags is None:
+            filter_tags = DEFAULT_FILTER_TAGS
+        if not filter_tags:
+            return content, None, False
+
+        closed_regex, unclosed_regex = _build_patterns(filter_tags)
+
         has_tags = False
         extracted_thoughts: List[str] = []
 
@@ -53,10 +89,10 @@ class PromptHygieneEngine:
                 extracted_thoughts.append(tag_content)
             return ""
 
-        clean_text = THINK_REGEX.sub(replace_match, content)
+        clean_text = closed_regex.sub(replace_match, content)
 
         # Handle unclosed tags from truncated generation
-        unclosed_match = UNCLOSED_THINK_REGEX.search(clean_text)
+        unclosed_match = unclosed_regex.search(clean_text)
         if unclosed_match:
             has_tags = True
             extracted_thoughts.append(unclosed_match.group(2).strip())
@@ -67,13 +103,23 @@ class PromptHygieneEngine:
         return clean_text, combined_thoughts, has_tags
 
     @classmethod
-    def evaluate_imitation_risk(cls, messages: List[PromptMessage]) -> float:
+    def evaluate_imitation_risk(
+        cls, messages: List[PromptMessage], filter_tags: Optional[List[str]] = None
+    ) -> float:
         """Calculate imitation probability score (0.0 to 1.0).
 
         When reasoning tags appear in prompt history, downstream autoregressive
         models heavily imitate them, leading to broken UI markdown parsing
-        and recursive thought hallucinations.
+        and recursive thought hallucinations. Uses filter_tags to determine
+        which tag names to detect.
         """
+        if filter_tags is None:
+            filter_tags = DEFAULT_FILTER_TAGS
+        if not filter_tags:
+            return 0.0
+
+        closed_regex, unclosed_regex = _build_patterns(filter_tags)
+
         tag_occurrences = 0
         unclosed_occurrences = 0
         assistant_turn_count = 0
@@ -81,10 +127,14 @@ class PromptHygieneEngine:
         for msg in messages:
             if msg.role == "assistant":
                 assistant_turn_count += 1
-                closed_matches = len(THINK_REGEX.findall(msg.content))
+                closed_matches = len(closed_regex.findall(msg.content))
                 if closed_matches > 0:
                     tag_occurrences += closed_matches
-                if UNCLOSED_THINK_REGEX.search(msg.content):
+                # Check for unclosed tags only after removing closed blocks.
+                # Otherwise the broad unclosed pattern also matches the opening
+                # side of a properly closed tag, double-counting it as unclosed.
+                clean_after_closed = closed_regex.sub("", msg.content)
+                if unclosed_regex.search(clean_after_closed):
                     unclosed_occurrences += 1
 
         if tag_occurrences == 0 and unclosed_occurrences == 0:
@@ -103,7 +153,7 @@ class PromptHygieneEngine:
 
         for msg in request.messages:
             if msg.role == "assistant":
-                clean_text, thoughts, has_tags = cls.extract_reasoning_blocks(msg.content)
+                clean_text, thoughts, has_tags = cls.extract_reasoning_blocks(msg.content, request.filter_tags)
                 if has_tags:
                     any_think_tags = True
 
@@ -140,7 +190,7 @@ class PromptHygieneEngine:
         if original_tokens > 0 and original_tokens > sanitized_tokens:
             savings_pct = round(((original_tokens - sanitized_tokens) / original_tokens) * 100.0, 2)
 
-        imitation_risk = cls.evaluate_imitation_risk(request.messages) if not request.reinject_reasoning else 0.85
+        imitation_risk = cls.evaluate_imitation_risk(request.messages, request.filter_tags) if not request.reinject_reasoning else 0.85
 
         return PromptHygieneResponse(
             model_id=request.model_id,

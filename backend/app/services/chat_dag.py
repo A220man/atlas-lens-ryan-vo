@@ -19,6 +19,22 @@ import uuid
 from app.models.schemas import ChatMessage, ChatValidationReport
 
 
+def _timestamp_sort_key(item: Tuple[str, Dict[str, Any]]) -> float:
+    """Convert a node timestamp to a sortable float, pushing missing values last.
+
+    Nodes without a valid timestamp sort after all timestamped nodes so that
+    root nodes (which carry explicit timestamps) are selected as the canonical
+    root rather than orphan nodes that happen to lack timestamps.
+    """
+    ts = item[1].get("timestamp")
+    if ts is None:
+        return float("inf")
+    try:
+        return float(ts)
+    except (TypeError, ValueError):
+        return float("inf")
+
+
 class ChatDagEngine:
     """Deterministic conversational tree validator and healing engine."""
 
@@ -172,11 +188,9 @@ class ChatDagEngine:
                 break_cycles(nid)
 
         # Step 2: Repair orphan nodes missing valid parentId
-        # Sort nodes by timestamp or discovery order
-        sorted_nodes = sorted(
-            nodes.items(),
-            key=lambda item: float(item[1].get("timestamp") or 0)
-        )
+        # Sort nodes by timestamp; nodes without timestamps sort last so that
+        # genuine root nodes (with explicit timestamps) are selected first.
+        sorted_nodes = sorted(nodes.items(), key=_timestamp_sort_key)
 
         root_id: Optional[str] = None
         for nid, data in sorted_nodes:
@@ -247,11 +261,8 @@ class ChatDagEngine:
             current_id = raw_chat["history"].get("currentId")
 
         if not current_id or str(current_id) not in nodes:
-            # Pick latest
-            sorted_nodes = sorted(
-                nodes.items(),
-                key=lambda item: float(item[1].get("timestamp") or 0)
-            )
+            # Pick latest by timestamp; nodes without timestamps sort last
+            sorted_nodes = sorted(nodes.items(), key=_timestamp_sort_key)
             current_id = sorted_nodes[-1][0]
 
         trajectory: List[Dict[str, Any]] = []

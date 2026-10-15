@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # Core environment
     app_name: str = "Atlas Lens"
-    app_version: str = "1.0.0"
+    app_version: str = "1.3.0"
     app_env: Literal["production", "development", "test"] = "development"
     debug: bool = False
     demo_mode: bool = True

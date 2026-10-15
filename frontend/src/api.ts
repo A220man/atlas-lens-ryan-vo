@@ -108,7 +108,8 @@ class ApiClient {
   async inspectHygiene(
     messages: PromptMessageItem[],
     reinjectReasoning: boolean = false,
-    modelId: string = 'default'
+    modelId: string = 'default',
+    filterTags?: string[]
   ): Promise<PromptHygieneResponse> {
     return this.request<PromptHygieneResponse>('/hygiene/inspect', {
       method: 'POST',
@@ -116,6 +117,7 @@ class ApiClient {
         model_id: modelId,
         reinject_reasoning: reinjectReasoning,
         messages,
+        ...(filterTags && { filter_tags: filterTags }),
       }),
     });
   }

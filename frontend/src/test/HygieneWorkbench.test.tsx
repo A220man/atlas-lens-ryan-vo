@@ -29,8 +29,11 @@ describe('HygieneWorkbench Component', () => {
 
   it('renders reinject toggle with default OFF', async () => {
     render(<HygieneWorkbench />);
-    const toggle = screen.getByRole('checkbox', { name: /Reinject Reasoning/i });
-    expect(toggle).not.toBeChecked();
+    // Wait for initial analysis to complete to avoid act() warnings
+    await waitFor(() => {
+      const toggle = screen.getByRole('checkbox', { name: /Reinject Reasoning/i });
+      expect(toggle).not.toBeChecked();
+    });
   });
 
   it('displays calculated token savings and metrics after analysis', async () => {
@@ -44,8 +47,16 @@ describe('HygieneWorkbench Component', () => {
 
   it('toggles reinject reasoning state', async () => {
     render(<HygieneWorkbench />);
+    // Wait for initial analysis to complete
+    await waitFor(() => {
+      const toggle = screen.getByRole('checkbox', { name: /Reinject Reasoning/i });
+      expect(toggle).not.toBeChecked();
+    });
     const toggle = screen.getByRole('checkbox', { name: /Reinject Reasoning/i });
     fireEvent.click(toggle);
-    expect(toggle).toBeChecked();
+    // Wait for state update and re-analysis to complete
+    await waitFor(() => {
+      expect(toggle).toBeChecked();
+    });
   });
 });

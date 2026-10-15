@@ -116,3 +116,34 @@ def test_empty_chat_handling():
     assert report.total_messages == 0
     trajectory = ChatDagEngine.linearize_trajectory({})
     assert trajectory == []
+def test_repair_preserves_true_root_over_timestampless_orphan():
+    """Ensure orphans without timestamps attach to a genuine root, not become root.
+
+    Regression: nodes lacking a timestamp field sorted first under the old
+    float(... or 0) key, causing timestamp-less orphans to become the
+    canonical root instead of attaching to the real root node.
+    """
+    chat = {
+        "id": "orphan-root-test",
+        "history": {
+            "messages": {
+                "msg-root": {"id": "msg-root", "parentId": None, "childrenIds": [], "role": "user", "content": "Root", "timestamp": 1750304687},
+                "msg-child": {"id": "msg-child", "parentId": "msg-root", "childrenIds": [], "role": "assistant", "content": "Reply", "timestamp": 1750304688},
+                "msg-orphan": {"id": "msg-orphan", "role": "assistant", "content": "Orphan", "childrenIds": []},
+            },
+            "currentId": "msg-orphan",
+        },
+        "messages": [],
+    }
+    repaired_chat, report = ChatDagEngine.repair_graph(chat)
+    assert report.is_valid is True
+    nodes = repaired_chat["history"]["messages"]
+
+    # msg-root (with timestamp, parentId=None) must remain the sole root
+    roots = [nid for nid, n in nodes.items() if not n.get("parentId")]
+    assert roots == ["msg-root"]
+    # The orphan must be attached to the root
+    assert nodes["msg-orphan"]["parentId"] == "msg-root"
+    # Trajectory must start with the root, not the orphan
+    traj = ChatDagEngine.linearize_trajectory(repaired_chat)
+    assert traj[0]["id"] == "msg-root"
