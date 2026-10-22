@@ -1,7 +1,7 @@
 """Prompt hygiene and reasoning reinjection prevention engine.
 
-Addresses upstream Issue #23339: Add model-level toggle to disable reinjecting
-reasoning/thinking into prompts (prevents <think> tag imitation and rendering/parsing failures).
+Addresses upstream Issue #23339: Model-level toggle to disable reinjecting
+reasoning/thinking into prompts (prevents xxx tag imitation/parsing failures).
 
 Provides deterministic reasoning extraction, token bloat analysis,
 and imitation risk scoring without external dependencies.

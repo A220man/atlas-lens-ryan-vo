@@ -1,14 +1,11 @@
 """Chat DAG integrity validation and structural auto-repair engine.
 
-Addresses upstream Issue #15189: Lack of Data Integrity Validation on Chat Model
+Addresses upstream Issue #15189: Data Integrity Validation on Chat Model
 Causes Silent Failure and Frontend Deadlock.
 
-This engine:
-1. Detects cycles in conversation graphs to prevent infinite recursion.
-2. Identifies orphan messages (missing parentId or unlinked nodes).
-3. Reconstructs bidirectional parentId <-> childrenIds integrity.
-4. Synchronizes top-level messages array with history.messages mapping.
-5. Linearizes the active conversational trajectory safely for frontend rendering.
+Detects cycles, identifies orphan messages, reconstructs parentId <-> childrenIds
+integrity, synchronizes messages array with history.messages, and linearizes
+active trajectory for safe frontend rendering.
 """
 
 from collections import deque
@@ -22,9 +19,8 @@ from app.models.schemas import ChatMessage, ChatValidationReport
 def _timestamp_sort_key(item: Tuple[str, Dict[str, Any]]) -> float:
     """Convert a node timestamp to a sortable float, pushing missing values last.
 
-    Nodes without a valid timestamp sort after all timestamped nodes so that
-    root nodes (which carry explicit timestamps) are selected as the canonical
-    root rather than orphan nodes that happen to lack timestamps.
+    Nodes without timestamps sort after timestamped nodes so root nodes are
+    preferred over orphan nodes lacking timestamps.
     """
     ts = item[1].get("timestamp")
     if ts is None:

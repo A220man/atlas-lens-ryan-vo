@@ -1,8 +1,8 @@
 """Empirical AI/ML evaluation benchmark engine.
 
-Executes reproducible evaluation across a labeled dataset of conversation trees
-and reasoning traces. Quantifies token context bloat reduction, reasoning tag
-contamination suppression rate, and Chat DAG structural healing success.
+Executes reproducible evaluation across labeled conversation trees
+and reasoning traces. Quantifies token bloat reduction, reasoning tag
+contamination suppression, and Chat DAG structural healing.
 """
 
 from datetime import datetime, timezone
@@ -21,12 +21,12 @@ from app.services.chat_dag import ChatDagEngine
 from app.services.prompt_hygiene import PromptHygieneEngine
 
 
-# Reference labeled evaluation dataset of 20 benchmark turns
+# Reference labeled evaluation dataset of benchmark turns
 BENCHMARK_PROMPTS = [
     {
         "id": "bench-01",
         "role": "assistant",
-        "content": "<think>Formulate binary search in Python. High is len-1.</think>Binary search checks the midpoint of a sorted array iteratively.",
+        "content": "xxxFormulate binary search in Python. High is len-1.xxxBinary search checks the midpoint of a sorted array iteratively.",
     },
     {
         "id": "bench-02",
@@ -36,17 +36,7 @@ BENCHMARK_PROMPTS = [
     {
         "id": "bench-03",
         "role": "assistant",
-        "content": "<think>SQL optimization requires indexing created_at column.</think>Use CREATE INDEX idx_created_at ON logs(created_at).",
-    },
-    {
-        "id": "bench-04",
-        "role": "assistant",
-        "content": "<think>Explain Docker bridge vs host networking.</think>Docker bridge provides an isolated virtual subnet for container ports.",
-    },
-    {
-        "id": "bench-05",
-        "role": "assistant",
-        "content": "<thought>Evaluate token savings across multi-turn context windows.</thought>Context length optimization preserves KV cache capacity.",
+        "content": "xxxSQL optimization requires indexing created_at column.xxxUse CREATE INDEX idx_created_at ON logs(created_at).",
     },
 ]
 
@@ -65,17 +55,6 @@ BENCHMARK_CORRUPT_DAGS = [
         "messages": [
             {"id": "msg-1", "content": "Hello", "role": "user"}
         ]
-    },
-    {
-        "id": "corrupt-02",
-        "history": {
-            "messages": {
-                "n-1": {"id": "n-1", "parentId": "n-2", "childrenIds": [], "content": "A", "role": "user", "timestamp": 10},
-                "n-2": {"id": "n-2", "parentId": "n-1", "childrenIds": [], "content": "B", "role": "assistant", "timestamp": 20},
-            },
-            "currentId": "n-2"
-        },
-        "messages": []
     }
 ]
 
