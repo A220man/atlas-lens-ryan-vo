@@ -70,7 +70,6 @@ export const EvaluationDashboard: React.FC = () => {
 
       {statusMessage && <div className="status-banner">{statusMessage}</div>}
 
-      {/* Metric Cards */}
       {latestSummary ? (
         <div>
           <div className="metric-cards-grid">
@@ -99,7 +98,6 @@ export const EvaluationDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Observations and Provenance */}
           <div className="card mt-4">
             <h3>Benchmark Methodology &amp; Data Provenance</h3>
             <p className="subtext">
@@ -126,7 +124,6 @@ export const EvaluationDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Past Runs Table */}
           <div className="card mt-4">
             <h3>Historical Benchmark Runs ({history.length})</h3>
             <table className="nodes-table">

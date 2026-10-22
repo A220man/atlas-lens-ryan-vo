@@ -1,8 +1,7 @@
 """User-scoped MCP tool header proxy and multi-tenant tool dispatcher.
 
-Addresses upstream Issue #19313: feat: User specific MCP headers.
-Enables individual users to register their personal credentials (API keys,
-basic auth tokens, custom tenant IDs) for globally administered MCP servers.
+Addresses upstream Issue #19313: User specific MCP headers.
+Enables users to register personal credentials for global MCP servers.
 Enforces tenant isolation, header masking in logs, and secure execution.
 """
 

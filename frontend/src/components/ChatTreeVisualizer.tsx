@@ -2,50 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import { ChatDetailResponse, ChatRecord } from '../types';
 
-const SAMPLE_MALFORMED_CHAT = {
-  id: 'sample-corrupted-tree-001',
-  title: 'Corrupted Form Request Tree',
-  history: {
-    messages: {
-      'msg-root': {
-        id: 'msg-root',
-        parentId: null,
-        childrenIds: ['msg-reply-1'],
-        role: 'user',
-        content: 'Explain FormRequest validation pattern.',
-        timestamp: 1750304000,
-      },
-      'msg-reply-1': {
-        id: 'msg-reply-1',
-        parentId: 'msg-root',
-        childrenIds: [],
-        role: 'assistant',
-        content: '<think>User wants validation pattern.</think>Encapsulate rules.',
-        timestamp: 1750304050,
-      },
-      'msg-orphan': {
-        id: 'msg-orphan',
-        parentId: null,
-        childrenIds: [],
-        role: 'assistant',
-        content: 'Orphan message with missing parent link.',
-        timestamp: 1750304100,
-      },
-    },
-    currentId: 'msg-orphan',
-  },
-  messages: [
-    {
-      id: 'msg-root',
-      parentId: null,
-      childrenIds: ['msg-reply-1'],
-      role: 'user',
-      content: 'Explain FormRequest validation pattern.',
-      timestamp: 1750304000,
-    },
-  ],
-};
-
 export const ChatTreeVisualizer: React.FC = () => {
   const [chats, setChats] = useState<ChatRecord[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatDetailResponse | null>(null);
@@ -55,27 +11,27 @@ export const ChatTreeVisualizer: React.FC = () => {
   const [showImportModal, setShowImportModal] = useState<boolean>(false);
 
   const fetchChats = async () => {
-    setIsLoading(true);
     try {
       const data = await api.listChats();
       setChats(data);
       if (data.length > 0 && !selectedChat) {
         loadChatDetail(data[0].id);
       }
-    } catch (err: any) {
-      setStatusMessage(`Error loading chats: ${err.message}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      setStatusMessage(`Error loading chats: ${msg}`);
     } finally {
       setIsLoading(false);
     }
   };
 
   const loadChatDetail = async (id: string) => {
-    setIsLoading(true);
     try {
       const detail = await api.getChat(id);
       setSelectedChat(detail);
-    } catch (err: any) {
-      setStatusMessage(`Error loading chat detail: ${err.message}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      setStatusMessage(`Error loading chat detail: ${msg}`);
     } finally {
       setIsLoading(false);
     }
@@ -88,13 +44,27 @@ export const ChatTreeVisualizer: React.FC = () => {
   const handleImportSample = async () => {
     setIsLoading(true);
     try {
-      const res = await api.importChat(SAMPLE_MALFORMED_CHAT, true);
+      const sample = {
+        id: 'sample-corrupted-001',
+        title: 'Corrupted Tree Sample',
+        history: {
+          messages: {
+            'msg-root': { id: 'msg-root', parentId: null, childrenIds: ['msg-reply-1'], role: 'user', content: 'Explain validation pattern.', timestamp: 1750304000 },
+            'msg-reply-1': { id: 'msg-reply-1', parentId: 'msg-root', childrenIds: [], role: 'assistant', content: 'xxxUser wants validation pattern.xxxEncapsulate rules.', timestamp: 1750304050 },
+            'msg-orphan': { id: 'msg-orphan', parentId: null, childrenIds: [], role: 'assistant', content: 'Orphan message.', timestamp: 1750304100 },
+          },
+          currentId: 'msg-orphan',
+        },
+        messages: [{ id: 'msg-root', parentId: null, childrenIds: ['msg-reply-1'], role: 'user', content: 'Explain validation pattern.', timestamp: 1750304000 }],
+      };
+      const res = await api.importChat(sample, true);
       setStatusMessage(`Imported and healed chat: ${res.title}`);
       await fetchChats();
       await loadChatDetail(res.id);
       setShowImportModal(false);
-    } catch (err: any) {
-      setStatusMessage(`Import failed: ${err.message}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      setStatusMessage(`Import failed: ${msg}`);
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +127,6 @@ export const ChatTreeVisualizer: React.FC = () => {
       {statusMessage && <div className="status-banner">{statusMessage}</div>}
 
       <div className="two-column-layout">
-        {/* Left Column: Chat List */}
         <div className="card chat-sidebar">
           <h3>Saved Sessions ({chats.length})</h3>
           {isLoading && chats.length === 0 && <p className="loading-text">Loading sessions...</p>}
@@ -189,7 +158,6 @@ export const ChatTreeVisualizer: React.FC = () => {
           </ul>
         </div>
 
-        {/* Right Column: DAG Diagnostics & Message Tree */}
         <div className="card chat-main">
           {selectedChat ? (
             <div>

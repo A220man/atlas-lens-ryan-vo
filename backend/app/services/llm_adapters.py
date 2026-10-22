@@ -1,8 +1,8 @@
 """Multi-provider LLM adapter gateway.
 
-Supports OpenAI-compatible (including LiteLLM/OpenRouter/Ollama), Anthropic messages,
-and Gemini generateContent via httpx with bounded timeouts and credential redaction.
-Includes a grounded offline deterministic fallback engine when no key is configured.
+Supports OpenAI-compatible (LiteLLM/OpenRouter/Ollama), Anthropic, Gemini
+via httpx with bounded timeouts and credential redaction. Includes offline
+deterministic fallback when no key is configured.
 """
 
 from typing import Any, Dict, List, Optional
