@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.4.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
@@ -12,7 +16,7 @@ Partial code published for continued development. Known issues: STATUS.md.
 
 ### Fixed
 - **Honest empirical metrics**: `EvaluationEngine.run_benchmark` observations now embed the measured DAG healing rate instead of a hardcoded "100%" claim, so the report never asserts a benchmark number not observed for the run. Observation assembly was extracted into a pure, unit-tested helper (`_build_observations`).
-- **Benchmark table accuracy**: README "Measured Benchmark Results" corrected from the previously claimed `42.5% – 50.0%` context-token-savings range to the deterministic baseline actually reproduced by the suite (`35.38%`).
+- **Benchmark table accuracy**: README "Measured Benchmark Results" corrected from the previously claimed `35.38%` context-token-savings to the deterministic baseline actually reproduced by the suite (`12.32%`).
 
 ### Added
 - Dedicated `backend/tests/test_eval_engine.py` unit tests asserting observations are data-driven, including a synthetic non-100% healing case.
