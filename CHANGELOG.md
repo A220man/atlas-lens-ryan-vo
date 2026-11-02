@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.5.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
@@ -38,19 +42,12 @@ Partial code published for continued development. Known issues: STATUS.md.
 
 ### Fixed
 - Corrected Chat DAG orphan repair timestamp sort: nodes without timestamps no longer sort first and become the canonical root; genuine root nodes with explicit timestamps are now preserved as the root during structural healing.
-- Fixed imitation risk score double-counting: properly closed and tags are no longer also counted as unclosed, producing accurate imitation risk scores (e.g. 0.65 for one closed tag instead of 0.80).
+- Fixed imitation risk score double-counting: properly closed `think` and `thought` tags are no longer also counted as unclosed, producing accurate imitation risk scores (e.g. 0.65 for one closed tag instead of 0.80).
 
 ### Added
 - Regression tests for DAG root preservation over timestep-less orphans and for imitation risk no double-counting.
 
 ## [1.0.0] - 2026-10-12
-
-Partial code published for continued development. Known issues: STATUS.md.
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 - Initial release of Atlas Lens: AI/ML developer observability and prompt hygiene workbench.
@@ -62,3 +59,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Production OIDC authentication through Keycloak with PKCE verification and local-only demo mode guard.
 - React 18 + TypeScript + Vite frontend dashboard featuring DAG visualization, prompt hygiene workbench, and evaluation charts.
 - Docker compose configuration, multi-stage Dockerfiles, and GitHub Actions CI workflow.
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

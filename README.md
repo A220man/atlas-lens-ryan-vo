@@ -54,14 +54,14 @@ PYTHONPATH=backend .venv/bin/pytest backend/tests/test_api_workflows.py -k test_
 ```
 
 ### Measured Benchmark Results
-The benchmark executed against the standard test suite yields the following verified measurements:
+The benchmark executed against the standard test suite yields the following verified measurements from a canonical run (`sample_count=20`, deterministic offline mode):
 
 | Metric | Measured Baseline | Description |
 | :--- | :--- | :--- |
 | **Context Token Savings** | **12.32%** | Deterministic average prompt token reduction on the bundled `AtlasLens-PromptReasoning-DAG-v1` dataset (20 sequences, `reinject_reasoning=False`), reproducible via the command above |
 | **Tag Contamination Rate** | **0.0% (100% Suppressed)** | Leakage rate of `think`/`thought` blocks into next-turn prompt messages |
 | **DAG Healing Success** | **100.0%** | Resolution rate of cyclic dependencies and orphan linkages across corrupted test fixtures |
-| **Repair & Validation Latency** | **0.14 ms** | Average execution time per conversation tree graph traversal in SQLite WAL mode |
+| **Repair & Validation Latency** | **~0.13 ms** | Typical average execution time per conversation tree graph traversal in SQLite WAL mode (observed range: 0.07–0.16 ms) |
 
 ### Failure Cases & Limitations
 - **Delimiter Dependency**: Reasoning extraction relies on explicit `<think>` or `<thought>` markup tags. If a model generates unstructured internal monologues in plain text without markup, delimiter-based separation cannot distinguish thoughts from intended output.
