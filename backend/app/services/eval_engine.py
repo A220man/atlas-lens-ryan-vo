@@ -26,7 +26,7 @@ BENCHMARK_PROMPTS = [
     {
         "id": "bench-01",
         "role": "assistant",
-        "content": "xxxFormulate binary search in Python. High is len-1.xxxBinary search checks the midpoint of a sorted array iteratively.",
+        "content": "Binary search checks the midpoint of a sorted array iteratively.",
     },
     {
         "id": "bench-02",
@@ -36,11 +36,9 @@ BENCHMARK_PROMPTS = [
     {
         "id": "bench-03",
         "role": "assistant",
-        "content": "xxxSQL optimization requires indexing created_at column.xxxUse CREATE INDEX idx_created_at ON logs(created_at).",
+        "content": "Use CREATE INDEX idx_created_at ON logs(created_at).",
     },
 ]
-
-# Benchmark corrupt chat graphs for DAG repair evaluation
 BENCHMARK_CORRUPT_DAGS = [
     {
         "id": "corrupt-01",
