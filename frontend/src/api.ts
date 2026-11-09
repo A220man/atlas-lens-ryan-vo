@@ -153,10 +153,10 @@ class ApiClient {
   }
 
   // Evaluations
-  async runEvaluation(sampleCount: number = 20): Promise<EvaluationMetricSummary> {
+  async runEvaluation(sampleCount: number = 20, filterTags?: string[]): Promise<EvaluationMetricSummary> {
     return this.request<EvaluationMetricSummary>('/evaluations/run', {
       method: 'POST',
-      body: JSON.stringify({ sample_count: sampleCount }),
+      body: JSON.stringify({ sample_count: sampleCount, filter_tags: filterTags }),
     });
   }
 

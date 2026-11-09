@@ -83,7 +83,7 @@ class EvaluationEngine:
     """Executes deterministic evaluation suite on reasoning and DAG integrity."""
 
     @classmethod
-    def run_benchmark(cls, sample_count: int = 20, user_id: str = "system") -> EvaluationMetricSummary:
+    def run_benchmark(cls, sample_count: int = 20, user_id: str = "system", filter_tags: list = None) -> EvaluationMetricSummary:
         """Run empirical evaluation suite and record metrics."""
         run_id = str(uuid.uuid4())
         start_time = time.perf_counter()
@@ -104,13 +104,15 @@ class EvaluationEngine:
             req = PromptHygieneRequest(
                 model_id="eval-model",
                 reinject_reasoning=False,
-                messages=test_messages
+                messages=test_messages,
+                filter_tags=filter_tags or ["think", "thought"]
             )
             result = PromptHygieneEngine.process_request(req)
             savings_list.append(result.token_savings_pct)
 
             # Check that reasoning tags were stripped from sanitized history
-            has_leak = any("<think>" in m.content or "<thought>" in m.content for m in result.sanitized_messages)
+            tags_to_check = filter_tags or ["think", "thought"]
+            has_leak = any(f"<{tag}>" in m.content or f"</{tag}>" in m.content for m in result.sanitized_messages for tag in tags_to_check)
             if not has_leak:
                 imitation_suppressed_count += 1
 
@@ -165,7 +167,7 @@ class EvaluationEngine:
                 action="RUN_EVALUATION_BENCHMARK",
                 resource_type="evaluation",
                 resource_id=run_id,
-                details={"sample_count": sample_count, "mean_token_savings_pct": mean_token_savings},
+                details={"sample_count": sample_count, "mean_token_savings_pct": mean_token_savings, "filter_tags": filter_tags or ["think", "thought"]},
                 conn=conn
             )
 

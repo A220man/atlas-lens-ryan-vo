@@ -7,6 +7,7 @@ export const EvaluationDashboard: React.FC = () => {
   const [history, setHistory] = useState<any[]>([]);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [sampleCount, setSampleCount] = useState<number>(20);
+  const [filterTags, setFilterTags] = useState<string>('think,thought');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const fetchHistory = async () => {
@@ -29,7 +30,11 @@ export const EvaluationDashboard: React.FC = () => {
     setIsRunning(true);
     setStatusMessage(null);
     try {
-      const summary = await api.runEvaluation(sampleCount);
+      const parsedTags = filterTags
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+      const summary = await api.runEvaluation(sampleCount, parsedTags);
       setLatestSummary(summary);
       setStatusMessage(`Evaluation run completed successfully (${summary.sample_count} samples).`);
       await fetchHistory();
@@ -61,6 +66,18 @@ export const EvaluationDashboard: React.FC = () => {
               onChange={(e) => setSampleCount(Number(e.target.value))}
               className="input-field input-narrow"
             />
+          </div>
+          <div className="sample-selector">
+            <label htmlFor="filter-tags">Filter Tags:</label>
+            <input
+              id="filter-tags"
+              type="text"
+              value={filterTags}
+              onChange={(e) => setFilterTags(e.target.value)}
+              placeholder="e.g. think, thought, scratchpad"
+              className="input-field"
+            />
+            <span className="subtext">Comma-separated tag names for reasoning extraction.</span>
           </div>
           <button className="btn btn-primary" onClick={handleRunEvaluation} disabled={isRunning}>
             {isRunning ? 'Running Benchmark...' : 'Run Empirical Evaluation'}

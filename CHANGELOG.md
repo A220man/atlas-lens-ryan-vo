@@ -1,8 +1,30 @@
 # Changelog
 
+## 1.8.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.7.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## [1.8.0] - 2026-11-09
+
+### Added
+- **Custom filter tags for evaluation benchmark**: The empirical evaluation suite now accepts an optional `filter_tags` parameter, allowing operators to test custom reasoning tag configurations (e.g., `think,thought,scratchpad`) and measure token savings and imitation suppression rates for those specific tag sets.
+- **Frontend evaluation filter tags input**: `EvaluationDashboard` exposes a comma-separated "Filter Tags" field for operator-defined evaluation configurations.
+- **Audit logging for evaluation filter tags**: The `filter_tags` used in each benchmark run are recorded in the audit trail for reproducibility.
+
+### Implementation
+- `EvaluationBenchmarkRequest.filter_tags` field added to schemas with default `["think", "thought"]`
+- `EvaluationEngine.run_benchmark()` extended to accept and forward `filter_tags` to `PromptHygieneRequest`
+- API endpoint `/api/evaluations/run` passes `filter_tags` through to the engine
+- Frontend `api.runEvaluation()` and `EvaluationDashboard` updated to support the new parameter
+
+### Tests
+- All 42 backend tests pass (including existing evaluation workflow test)
+- All 8 frontend tests pass
+- TypeScript typecheck and production build succeed
 
 ## 1.6.0 — work-in-progress checkpoint
 
