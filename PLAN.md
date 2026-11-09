@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-eval-metric-honesty
+eval-filter-tags
 
 ## Roadmap
 
@@ -121,4 +121,19 @@ Acceptance:
 Implementation: `backend/app/services/eval_engine.py`, `README.md`
 
 Tests: `backend/tests/test_eval_engine.py`
+
+### eval-filter-tags — Custom Filter Tags for Empirical Evaluation Benchmark
+
+Status: done
+
+Acceptance:
+- Evaluation benchmark accepts optional filter_tags parameter to test custom reasoning tag configurations
+- Engine passes filter_tags through to PromptHygieneRequest for token savings and imitation suppression measurement
+- Frontend EvaluationDashboard exposes comma-separated filter tags input for operator-defined evaluation configurations
+- Default filter_tags (think, thought) preserved when not specified
+- Audit log records filter_tags used for reproducibility
+
+Implementation: `backend/app/models/schemas.py`, `backend/app/services/eval_engine.py`, `backend/app/api/evaluations.py`, `frontend/src/components/EvaluationDashboard.tsx`, `frontend/src/api.ts`
+
+Tests: `backend/tests/test_api_workflows.py`, `backend/tests/test_eval_engine.py`
 

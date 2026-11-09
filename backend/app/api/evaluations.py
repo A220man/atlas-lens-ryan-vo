@@ -22,7 +22,11 @@ def run_evaluation_benchmark(
     current_user: User = Depends(require_role("operator"))
 ) -> EvaluationMetricSummary:
     """Execute reproducible empirical evaluation suite."""
-    return EvaluationEngine.run_benchmark(sample_count=request.sample_count, user_id=current_user.id)
+    return EvaluationEngine.run_benchmark(
+        sample_count=request.sample_count,
+        user_id=current_user.id,
+        filter_tags=request.filter_tags
+    )
 
 
 @router.get("", response_model=List[Dict[str, Any]])

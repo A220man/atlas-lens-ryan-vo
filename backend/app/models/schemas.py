@@ -173,6 +173,7 @@ class EvaluationBenchmarkRequest(BaseModel):
     sample_count: int = Field(default=20, ge=5, le=100)
     include_repetition_test: bool = True
 
+    filter_tags: List[str] = Field(default_factory=lambda: ["think", "thought"])
 
 class EvaluationMetricSummary(BaseModel):
     """Detailed summary of empirical evaluation measurements."""
