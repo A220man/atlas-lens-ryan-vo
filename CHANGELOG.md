@@ -1,6 +1,20 @@
 # Changelog
 
+## 1.10.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.9.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
+### Fixed
+- **Consistent filter_tags handling**: `EvaluationEngine.run_benchmark()` now properly distinguishes between `filter_tags=None` (use defaults `["think", "thought"]`) and `filter_tags=[]` (no-op, no tag extraction). Previously, both `None` and `[]` were treated as defaults, causing inconsistent behavior between the evaluation engine and the prompt hygiene engine.
+
+### Changed
+- `backend/app/services/eval_engine.py`: Fixed `filter_tags or ["think", "thought"]` patterns to `filter_tags if filter_tags is not None else ["think", "thought"]` in two locations (line 114 and line 170) to properly handle empty filter tag lists.
+
+
 
 Partial code published for continued development. Known issues: STATUS.md.
 

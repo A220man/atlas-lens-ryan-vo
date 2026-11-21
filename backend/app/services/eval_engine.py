@@ -105,13 +105,13 @@ class EvaluationEngine:
                 model_id="eval-model",
                 reinject_reasoning=False,
                 messages=test_messages,
-                filter_tags=filter_tags or ["think", "thought"]
+                filter_tags=filter_tags if filter_tags is not None else ["think", "thought"]
             )
             result = PromptHygieneEngine.process_request(req)
             savings_list.append(result.token_savings_pct)
 
             # Check that reasoning tags were stripped from sanitized history
-            tags_to_check = filter_tags or ["think", "thought"]
+            tags_to_check = filter_tags if filter_tags is not None else ["think", "thought"]
             has_leak = any(f"<{tag}>" in m.content or f"</{tag}>" in m.content for m in result.sanitized_messages for tag in tags_to_check)
             if not has_leak:
                 imitation_suppressed_count += 1
@@ -167,7 +167,7 @@ class EvaluationEngine:
                 action="RUN_EVALUATION_BENCHMARK",
                 resource_type="evaluation",
                 resource_id=run_id,
-                details={"sample_count": sample_count, "mean_token_savings_pct": mean_token_savings, "filter_tags": filter_tags or ["think", "thought"]},
+                details={"sample_count": sample_count, "mean_token_savings_pct": mean_token_savings, "filter_tags": filter_tags if filter_tags is not None else ["think", "thought"]},
                 conn=conn
             )
 
