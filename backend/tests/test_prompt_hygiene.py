@@ -192,3 +192,19 @@ def test_imitation_risk_respects_custom_filter_tags():
     # With only "think" in filter_tags, <thought> tags should not be counted
     risk_custom = PromptHygieneEngine.evaluate_imitation_risk(msgs, filter_tags=["think"])
     assert risk_custom == 0.0
+
+
+def test_process_request_with_non_matching_filter_tags_passthrough():
+    """Verify that tags not in filter_tags are passed through without extraction.
+    
+    When filter_tags=['think'], content with <other> tags should be unchanged.
+    """
+    messages = [
+        PromptMessage(role="assistant", content="Just regular text without think tags"),
+    ]
+    req = PromptHygieneRequest(messages=messages, filter_tags=["think"])
+    res = PromptHygieneEngine.process_request(req)
+    # Content should be unchanged since <other> is not in filter_tags
+    assert res.sanitized_messages[0].content == "Just regular text without think tags"
+    # No token savings since nothing was stripped
+    assert res.token_savings_pct == 0.0
