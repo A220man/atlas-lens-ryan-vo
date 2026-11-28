@@ -34,7 +34,7 @@ def _build_patterns(filter_tags: List[str]) -> Tuple[re.Pattern, re.Pattern]:
     but not <think>...</thought>). Patterns are cached to avoid recompilation
     on repeated requests with the same tag set.
     """
-    key = tuple(sorted(t.lower() for t in filter_tags))
+    key = tuple(sorted(set(t.lower() for t in filter_tags)))
     if key in _PATTERN_CACHE:
         return _PATTERN_CACHE[key]
 
