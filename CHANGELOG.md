@@ -1,6 +1,13 @@
 # Changelog
 
+## 1.12.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.11.0 — work-in-progress checkpoint
+
+### Fixed
+- **prompt_hygiene.py `_build_patterns` function**: Added `set()` deduplication to filter_tags before creating cache key. This prevents redundant regex patterns like `think|think` when duplicate tag names are provided, and improves cache efficiency.
 
 Partial code published for continued development. Known issues: STATUS.md.
 
